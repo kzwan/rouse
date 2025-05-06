@@ -1,14 +1,18 @@
-import pg from 'pg';
+import * as pg from 'pg';
 import env from './env.js';
 import logger from './logger.js';
 
 const { Pool } = pg;
-let pool = null;
+let pool: InstanceType<typeof Pool> | null = null;
+
+interface QueryResult<T> extends pg.QueryResult {
+  rows: T[];
+}
 
 // Initialize database connection
-const initializeDatabase = async () => {
+const initializeDatabase = async (): Promise<InstanceType<typeof Pool>> => {
   try {
-    const config = {
+    const config: pg.PoolConfig = {
       user: env.DB_USER,
       host: env.DB_HOST,
       database: env.DB_NAME,
@@ -31,7 +35,7 @@ const initializeDatabase = async () => {
 };
 
 // Basic query function
-const query = async (text, params = []) => {
+const query = async <T = any>(text: string, params: any[] = []): Promise<QueryResult<T>> => {
   if (!pool) {
     throw new Error('Database not initialized');
   }
@@ -48,7 +52,7 @@ const query = async (text, params = []) => {
       rows: result.rowCount
     }, 'Executed query');
     
-    return result;
+    return result as QueryResult<T>;
   } catch (error) {
     logger.error({
       error,
@@ -61,7 +65,7 @@ const query = async (text, params = []) => {
 };
 
 // Get the pool
-export const getPool = () => pool;
+export const getPool = (): InstanceType<typeof Pool> | null => pool;
 
 export default {
   initializeDatabase,

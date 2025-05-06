@@ -2,9 +2,15 @@
   "name": "rouse",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate": "node scripts/migrations.js"
+    "build": "tsc",
+    "start": "node --loader ts-node/esm server.ts",
+    "migrate": "node --loader ts-node/esm scripts/migrations.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/**/*.ts"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +22,19 @@
     "express": "^5.1.0",
     "ioredis": "^5.6.1",
     "pg": "^8.15.6",
-    "pino": "^9.6.0"
+    "pino": "^9.6.0",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.26.0",
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.14",
+    "@types/pg": "^8.15.0",
+    "@types/pg-pool": "^2.0.6",
+    "eslint": "^9.26.0",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.32.0",
+    "vitest": "^3.1.3"
   }
 }

@@ -1,10 +1,13 @@
 import pino from 'pino';
 import env from './env.js';
 
-const logLevel = env.LOG_LEVEL;
+// Define log level type for type safety
+type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace' | 'silent';
+
+const logLevel = env.LOG_LEVEL as LogLevel;
 
 // Configure logger options
-const options = {
+const options: pino.LoggerOptions = {
   level: logLevel,
   timestamp: () => `,"time":"${new Date().toISOString()}"`,
   formatters: {
@@ -21,7 +24,7 @@ const options = {
 };
 
 // Add pretty printing in development
-// if (process.env.NODE_ENV === 'development') {
+// if (env.NODE_ENV === 'development') {
 //   options.transport = {
 //     target: 'pino-pretty',
 //     options: {
@@ -33,7 +36,7 @@ const options = {
 // }
 
 // Create the logger
-const logger = pino(options);
+const logger = pino.default(options);
 
 // Log environment on startup
 logger.info({

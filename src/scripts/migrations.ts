@@ -1,4 +1,4 @@
-// src/scripts/migrations.js
+// src/scripts/migrations.ts
 import pg from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -14,19 +14,26 @@ const __dirname = path.dirname(__filename);
 
 const { Pool } = pg;
 
+// Define types
+interface MigrationRecord {
+  id: number;
+  name: string;
+  applied_at: Date;
+}
+
 // Create a database connection
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT
+  port: parseInt(process.env.DB_PORT || '5432')
 });
 
 // Table to track migrations
 const MIGRATIONS_TABLE = 'schema_migrations';
 
-async function initialize() {
+async function initialize(): Promise<void> {
   console.log('Initializing migrations table...');
   
   // Create migrations table if it doesn't exist
@@ -39,9 +46,9 @@ async function initialize() {
   `);
 }
 
-async function getMigrationsToRun() {
+async function getMigrationsToRun(): Promise<string[]> {
   // Get list of migrations that have been applied
-  const result = await pool.query(`SELECT name FROM ${MIGRATIONS_TABLE} ORDER BY id`);
+  const result = await pool.query<MigrationRecord>(`SELECT name FROM ${MIGRATIONS_TABLE} ORDER BY id`);
   const appliedMigrations = new Set(result.rows.map(row => row.name));
   
   // Get list of migration files
@@ -54,7 +61,7 @@ async function getMigrationsToRun() {
   return migrationFiles.filter(file => !appliedMigrations.has(file));
 }
 
-async function runMigration(filename) {
+async function runMigration(filename: string): Promise<void> {
   console.log(`Running migration: ${filename}`);
   
   const migrationsDir = path.join(__dirname, 'migrations');
@@ -87,7 +94,7 @@ async function runMigration(filename) {
   }
 }
 
-async function runMigrations() {
+async function runMigrations(): Promise<void> {
   try {
     // Initialize migrations table
     await initialize();
@@ -114,7 +121,11 @@ async function runMigrations() {
 }
 
 // Run the migrations
-runMigrations().catch(error => {
-  console.error('Migration failed:', error);
-  process.exit(1);
-});
+if (import.meta.url === `file://${__filename}`) {
+  runMigrations().catch(error => {
+    console.error('Migration failed:', error);
+    process.exit(1);
+  });
+}
+
+export default runMigrations;
